@@ -1,0 +1,452 @@
+<template>
+    <div>
+        <transition name="fade" appear>
+            <div
+                class="fixed h-screen top-0 right-0 bottom-0 left-0 z-[100] bg-gray-600 opacity-60"
+                v-if="showModal"
+            ></div>
+        </transition>
+        <transition name="bounce" appear>
+            <div
+                class="absolute my-10 top-0 right-0 left-0 bottom-0 m-auto text-center w-full h-fit max-w-4xl max-h-full rounded-xl shadow-[0_5px_5px_rgba(0,0,0,0.2)] z-[110]"
+                role="dialog"
+                v-if="showModal"
+            >
+                <!-- Modal content -->
+                <div class="relative bg-gray-100 rounded-lg shadow">
+                    <!-- Modal header -->
+                    <div
+                        class="flex items-start justify-between p-4 border-b border-b-black rounded-t"
+                    >
+                        <h3 class="text-xl font-semibold text-gray-900">
+                            {{ headerModal }}
+                        </h3>
+                        <button
+                            type="button"
+                            @click="showModal = false"
+                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center"
+                        >
+                            <svg
+                                class="w-3 h-3"
+                                aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 14 14"
+                            >
+                                <path
+                                    stroke="currentColor"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
+                                />
+                            </svg>
+                            <span class="sr-only">Close modal</span>
+                        </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="p-6 space-y-6">
+                        <form
+                            @submit.prevent="insertData(DataForm.id)"
+                            method="POST"
+                        >
+                            <div class="grid gap-4 mt-2 mb-2 grid-cols-2">
+                                <div class="w-full">
+                                    <label
+                                        for="name"
+                                        class="block mb-2 text-sm font-medium text-gray-900 text-left"
+                                        >Nama</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        :readonly="detailsMode"
+                                        v-model="DataForm.name"
+                                        id="name"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                        placeholder="Nama..."
+                                        required
+                                    />
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="tanggal"
+                                        class="block mb-2 text-sm font-medium text-gray-900 text-left"
+                                        >Tanggal Lahir</label
+                                    >
+                                    <input
+                                        type="date"
+                                        name="tanggal_lahir"
+                                        :readonly="detailsMode"
+                                        v-model="DataForm.tanggal_lahir"
+                                        id="tanggal"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                        placeholder="Tanggal Lahir..."
+                                        required
+                                    />
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="jenis_kelamin"
+                                        class="block mb-1 text-sm font-medium text-gray-900 text-left"
+                                        >Jenis Kelamin</label
+                                    >
+                                    <select
+                                        id="jenis_kelamin"
+                                        name="jenis_kelamin"
+                                        v-model="DataForm.jenis_kelamin"
+                                        required
+                                        :disabled="detailsMode"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    >
+                                        <option value="" selected disabled>
+                                            -- Pilih Jenis Kelamin --
+                                        </option>
+                                        <option value="Laki Laki">
+                                            Laki Laki
+                                        </option>
+                                        <option value="Perumpuan">
+                                            Perumpuan
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="agama"
+                                        class="block mb-1 text-sm font-medium text-gray-900 text-left"
+                                        >Agama</label
+                                    >
+                                    <select
+                                        id="agama"
+                                        name="agama"
+                                        v-model="DataForm.agama_id"
+                                        required
+                                        :disabled="detailsMode"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    >
+                                        <option value="" selected disabled>
+                                            -- Pilih Agama --
+                                        </option>
+                                        <option
+                                            v-for="agama in ListAgama"
+                                            :key="agama.id"
+                                            :value="agama.id"
+                                        >
+                                            {{ agama.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="provinsi"
+                                        class="block mb-1 text-sm font-medium text-gray-900 text-left"
+                                        >Provinsi</label
+                                    >
+                                    <select
+                                        id="provinsi"
+                                        name="provinsi_id"
+                                        @change="onChangeProvinsi()"
+                                        v-model="DataForm.provinsi_id"
+                                        required
+                                        :disabled="detailsMode"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    >
+                                        <option value="">
+                                            -- Pilih Provinsi --
+                                        </option>
+                                        <option
+                                            v-for="provinsi in ListProvinsi"
+                                            :key="provinsi.id"
+                                            :value="provinsi.id"
+                                        >
+                                            {{ provinsi.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="kota_atau_kabupaten"
+                                        class="block mb-1 text-sm font-medium text-gray-900 text-left"
+                                        >Kota Atau Kabupaten</label
+                                    >
+                                    <select
+                                        id="kota_atau_kabupaten"
+                                        name="kota_atau_kabupaten_id"
+                                        v-model="
+                                            DataForm.kota_atau_kabupaten_id
+                                        "
+                                        @change="onChangeKotaAtauKabupaten()"
+                                        required
+                                        :disabled="
+                                            DataForm.provinsi_id < 0 ||
+                                            DataForm.provinsi_id == '' ||
+                                            detailsMode
+                                        "
+                                        :class="
+                                            DataForm.provinsi_id < 0 ||
+                                            DataForm.provinsi_id == ''
+                                                ? [
+                                                      'bg-gray-200',
+                                                      'text-gray-400',
+                                                  ]
+                                                : ['bg-gray-50']
+                                        "
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    >
+                                        <option value="">
+                                            -- Pilih Kota Atau Kabupaten --
+                                        </option>
+
+                                        <option
+                                            v-for="kota_atau_kabupaten in ListKotaAtauKabupaten"
+                                            :key="kota_atau_kabupaten.id"
+                                            :value="kota_atau_kabupaten.id"
+                                        >
+                                            {{ kota_atau_kabupaten.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="kecamatan"
+                                        class="block mb-1 text-sm font-medium text-gray-900 text-left"
+                                        >Kecamatan</label
+                                    >
+                                    <select
+                                        id="kecamatan"
+                                        name="kecamatan_id"
+                                        v-model="DataForm.kecamatan_id"
+                                        @change="onChangeKecamatan()"
+                                        :disabled="
+                                            DataForm.kota_atau_kabupaten_id <
+                                                0 ||
+                                            DataForm.kota_atau_kabupaten_id ==
+                                                '' ||
+                                            detailsMode
+                                        "
+                                        :class="
+                                            DataForm.kota_atau_kabupaten_id <
+                                                0 ||
+                                            DataForm.kota_atau_kabupaten_id ==
+                                                ''
+                                                ? [
+                                                      'bg-gray-200',
+                                                      'text-gray-400',
+                                                  ]
+                                                : ['bg-gray-50']
+                                        "
+                                        required
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    >
+                                        <option value="">
+                                            -- Pilih Kecamatan --
+                                        </option>
+                                        <option
+                                            v-for="kecamatan in ListKecamatan"
+                                            :key="kecamatan.id"
+                                            :value="kecamatan.id"
+                                        >
+                                            {{ kecamatan.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="kelurahan_atau_desa"
+                                        class="block mb-1 text-sm font-medium text-gray-900 text-left"
+                                        >Kelurahan Atau Desa</label
+                                    >
+                                    <select
+                                        id="kelurahan_atau_desa"
+                                        name="kelurahan_atau_desa_id"
+                                        v-model="
+                                            DataForm.kelurahan_atau_desa_id
+                                        "
+                                        :disabled="
+                                            DataForm.kecamatan_id < 0 ||
+                                            DataForm.kecamatan_id == '' ||
+                                            detailsMode
+                                        "
+                                        :class="
+                                            DataForm.kecamatan_id < 0 ||
+                                            DataForm.kecamatan_id == ''
+                                                ? [
+                                                      'bg-gray-200',
+                                                      'text-gray-400',
+                                                  ]
+                                                : ['bg-gray-50']
+                                        "
+                                        required
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    >
+                                        <option value="">
+                                            -- Pilih Kelurahan Atau Desa --
+                                        </option>
+                                        <option
+                                            v-for="kelurahan_atau_desa in ListKelurahanAtauDesa"
+                                            :key="kelurahan_atau_desa.id"
+                                            :value="kelurahan_atau_desa.id"
+                                        >
+                                            {{ kelurahan_atau_desa.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid gap-3 mb-2 mt-3 grid-cols-1">
+                                <div class="w-full">
+                                    <label
+                                        for="alamat"
+                                        class="block mb-2 text-sm font-medium text-gray-900 text-left"
+                                        >Alamat</label
+                                    >
+                                    <textarea
+                                        name="alamat"
+                                        id="alamat"
+                                        :readonly="detailsMode"
+                                        v-model="DataForm.alamat"
+                                        placeholder="Alamat..."
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    ></textarea>
+                                </div>
+                            </div>
+
+                            <div class="grid gap-3 mb-2 mt-3 grid-cols-2">
+                                <div class="w-full">
+                                    <label
+                                        for="rt"
+                                        class="block mb-2 text-sm font-medium text-gray-900 text-left"
+                                        >RT</label
+                                    >
+                                    <input
+                                        type="number"
+                                        name="rt"
+                                        :readonly="detailsMode"
+                                        v-model="DataForm.rt"
+                                        min="0"
+                                        max="20"
+                                        id="rt"
+                                        placeholder="RT..."
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    />
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="rw"
+                                        class="block mb-2 text-sm font-medium text-gray-900 text-left"
+                                        >RW</label
+                                    >
+                                    <input
+                                        type="number"
+                                        name="rw"
+                                        v-model="DataForm.rw"
+                                        :readonly="detailsMode"
+                                        id="rw"
+                                        min="0"
+                                        max="20"
+                                        placeholder="RW..."
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    />
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="status_perkawinan"
+                                        class="block mb-1 text-sm font-medium text-gray-900 text-left"
+                                        >Status Perkawinan</label
+                                    >
+                                    <select
+                                        id="status_perkawinan"
+                                        name="status_perkawinan"
+                                        v-model="DataForm.status_perkawinan"
+                                        required
+                                        :disabled="detailsMode"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5 mt-2.5"
+                                    >
+                                        <option value="" selected disabled>
+                                            -- Pilih Status Perkawinan --
+                                        </option>
+                                        <option
+                                            v-for="status in ListStatusPerkawinan"
+                                            :key="status.id"
+                                            :value="status"
+                                        >
+                                            {{ status }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="w-full">
+                                    <label
+                                        for="pekerjaan"
+                                        class="block mb-2 text-sm font-medium text-gray-900 text-left"
+                                        >Pekerjaan</label
+                                    >
+                                    <input
+                                        type="text"
+                                        name="pekerjaan"
+                                        :readonly="detailsMode"
+                                        v-model="DataForm.pekerjaan"
+                                        id="pekerjaan"
+                                        placeholder="Pekerjaan..."
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-1.5"
+                                    />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Modal footer -->
+                    <div
+                        v-if="!detailsMode"
+                        class="flex items-center justify-end p-6 space-x-2 border-t border-t-black border-gray-200 rounded-b"
+                    >
+                        <button
+                            @click="showModal = false"
+                            type="button"
+                            class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            @click="insertData(DataForm.id)"
+                            type="submit"
+                            class="inline-flex text-white bg-green-500 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-lime-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                        >
+                            Submit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </div>
+</template>
+
+<style scoped>
+/* ---------------------------------- */
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.4s linear;
+}
+
+.fade-enter,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.bounce-enter-active {
+    animation: bounce-in 0.5s;
+}
+
+.bounce-leave-active {
+    animation: bounce-in 0.4s reverse;
+}
+
+@keyframes bounce-in {
+    0% {
+        transform: scale(0);
+    }
+
+    50% {
+        transform: scale(1);
+    }
+}
+</style>
